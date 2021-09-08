@@ -49,8 +49,8 @@ trainingData$classe <- as.factor(trainingData$classe)
 The steps to partition the data into training (75%) and cross validation (25%) data sets to be used for the development of the model were done here. 
 
 ```{r Data Partition, echo=FALSE}
-inTrain <- createDataPartition(y=trainingData$classe, p=0.75, list=FALSE)
 set.seed(314)
+inTrain <- createDataPartition(y=trainingData$classe, p=0.75, list=FALSE)
 training <- trainingData[inTrain,]
 crossValidation <- trainingData[-inTrain,]
 cat("Training set length:\n",length(training[,1]))
