@@ -2,29 +2,73 @@
 title: "Practical Machine Learning Course Project"
 author: "Juan Almeida"
 date: "08/09/2021"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Introduction
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+The goal of this project is to predict how well some exercises were done based on data obtained from devices such as Jawbone Up, Nike FuelBand and Fitbit. The "Classe" variable describes if the exercise was from class A, B, C, D or E. The data was collected from accelerometers on the belt, forearm, arm and dumbell of 6 participants.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## Initialization
 
-```{r cars}
-summary(cars)
+The libraries initialization and the training csv data read is done here. The "classe" column was displayed to view how many categories and measurements per class were available. 
+
+```{r library, echo=FALSE, message=FALSE,warning=FALSE}
+library(caret)
+library(kernlab)
+library(e1071)
+
+#Reading data
+path <- file.path("~","ML Course Data","pml-training.csv")
+TableTraining <- read.csv(path)
+path <- file.path("~","ML Course Data","pml-testing.csv")
+TableTesting <- read.csv(path)
+
+table(TableTraining$classe)
 ```
 
-## Including Plots
+## Data Processing
 
-You can also embed plots, for example:
+After the data was transferred to tables in R, the variables with valuable data for modeling needed to be selected. The head function was used to display the first 6 rows of each column and based of that the columns were selected. Rows 1 to 7 did not have data related to how well the activities were done, therefore these rows were removed. Also, several columns between 8 and 160 did not have data or had NA saved to it, these columns were also removed. The columns with valuable data were maintained and transferred to a new table. The "Classe" variable was also converted to factor class to be used correctly by the classification algorithm.
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r data processing, echo=FALSE}
+head(TableTraining)
+trainingData <- TableTraining[,c(160,8,9,10,11,37,38,39,40,41,42,43,44,45,46,47,48,49,60,61,62,63,64,65,66,67,68,84,85,86,102,113,114,115,116,117,118,119,120,121,122,123,124,140,151,152,153,154,155,156,157,158,159)]
+
+trainingData$classe <- as.factor(trainingData$classe)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Data Partition
+
+The steps to partition the data into training (75%) and cross validation (25%) data sets to be used for the development of the model were done here. 
+
+```{r Data Partition, echo=FALSE}
+inTrain <- createDataPartition(y=trainingData$classe, p=0.75, list=FALSE)
+set.seed(314)
+training <- trainingData[inTrain,]
+crossValidation <- trainingData[-inTrain,]
+cat("Training set length:\n",length(training[,1]))
+cat("\nCross Validation set length:\n",length(crossValidation[,1]))
+```
+
+## Support Vector Machines (SVM)
+
+The method used for this classification problem was SVM, which is a well known algorithm.This is a multiple class problem  therefore an extension of the standard SVM using Kernel is needed. The default Kernel type used for multiple class is Radial, Gama and Cost also used default values and the type used was "C-classification" since this is a classification task.
+
+After the model is built, the cross validation set is used to predict how well the model works. A table with the prediction for each category and the accuracy of the prediction is displayed below. The model had 98.7% of accuracy which is very good.
+
+```{r SVM, echo=FALSE}
+svmfit <- svm(classe~.,data=training,kernel="radial",gama = 0.1, cost = 10, type = "C-classification", )
+prediction_cv <- predict(svmfit, crossValidation)
+xtab <- table(crossValidation$classe, prediction_cv)
+print("Cross Validation set prediction table")
+xtab
+svm_accuracy = sum(diag(xtab))/sum(xtab)
+cat("Cross Validation set prediction Accuracy =",svm_accuracy)
+```
