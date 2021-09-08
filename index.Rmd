@@ -19,7 +19,7 @@ The goal of this project is to predict how well some exercises were done based o
 
 The libraries initialization and the training csv data read is done here. The "classe" column was displayed to view how many categories and measurements per class were available. 
 
-```{r library, echo=FALSE, message=FALSE,warning=FALSE}
+```{r library, message=FALSE,warning=FALSE}
 library(caret)
 library(kernlab)
 library(e1071)
@@ -37,7 +37,7 @@ table(TableTraining$classe)
 
 After the data was transferred to tables in R, the variables with valuable data for modeling needed to be selected. The head function was used to display the first 6 rows of each column and based of that the columns were selected. Rows 1 to 7 did not have data related to how well the activities were done, therefore these rows were removed. Also, several columns between 8 and 160 did not have data or had NA saved to it, these columns were also removed. The columns with valuable data were maintained and transferred to a new table. The "Classe" variable was also converted to factor class to be used correctly by the classification algorithm.
 
-```{r data processing, echo=FALSE}
+```{r data processing}
 head(TableTraining)
 trainingData <- TableTraining[,c(160,8,9,10,11,37,38,39,40,41,42,43,44,45,46,47,48,49,60,61,62,63,64,65,66,67,68,84,85,86,102,113,114,115,116,117,118,119,120,121,122,123,124,140,151,152,153,154,155,156,157,158,159)]
 
@@ -48,7 +48,7 @@ trainingData$classe <- as.factor(trainingData$classe)
 
 The steps to partition the data into training (75%) and cross validation (25%) data sets to be used for the development of the model were done here. 
 
-```{r Data Partition, echo=FALSE}
+```{r Data Partition}
 set.seed(314)
 inTrain <- createDataPartition(y=trainingData$classe, p=0.75, list=FALSE)
 training <- trainingData[inTrain,]
@@ -63,7 +63,7 @@ The method used for this classification problem was SVM, which is a well known a
 
 After the model is built, the cross validation set is used to predict how well the model works. A table with the prediction for each category and the accuracy of the prediction is displayed below. The model had 98.7% of accuracy which is very good.
 
-```{r SVM, echo=FALSE}
+```{r SVM}
 svmfit <- svm(classe~.,data=training,kernel="radial",gama = 0.1, cost = 10, type = "C-classification", )
 prediction_cv <- predict(svmfit, crossValidation)
 xtab <- table(crossValidation$classe, prediction_cv)
